@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solitaire Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #0c7b93;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            overflow: auto;
+        }
+        
+        .container {
+            max-width: 100%;
+            width: 100%;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        
+        .menu-bar, .menu-bar-bottom {
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            background-color: #007bff;
+            padding: 10px;
+            position: fixed;
+            z-index: 10;
+            box-sizing: border-box;
+        }
+        
+        .menu-bar {
+            top: 0;
+        }
+        
+        .menu-bar-bottom {
+            bottom: 0;
+            flex-direction: row;
+        }
+        
+        .menu-item, .menu-item-bottom {
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            text-align: center;
+            flex: 1;
+        }
+        
+        .menu-item:hover, .menu-item-bottom:hover {
+            text-decoration: underline;
+        }
+        
+        .menu-bar .menu-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+        }
+        
+        .menu-bar .info-item {
+            margin: 0;
+            font-size: 14px;
+            font-weight: bold;
+            line-height: 1.5;
+        }
+        
+        .menu-bar .info-item span {
+            font-weight: normal;
+        }
+        
+        .scoreboard-container {
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-top: 60px;
+        }
+        
+        .scoreboard, .rankboard {
+            background-color: white;
+            border: 2px solid #007bff;
+            border-radius: 10px;
+            padding: 5px 15px;
+            margin: 5px;
+            text-align: center;
+            width: auto;
+        }
+        
+        .scoreboard h3, .rankboard h3 {
+            margin: 0;
+            font-size: 14px;
+            color: #007bff;
+        }
+        
+        .scoreboard p, .rankboard p {
+            margin: 5px 0;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .deck {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        
+        .card {
+            width: 70px;
+            height: 100px;
+            border-radius: 10px;
+            background-color: white;
+            border: 2px solid black;
+            margin: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .content-section {
+            margin-top: 60px;
+            display: none;
+            text-align: center;
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        @media (max-width: 600px) {
+            .menu-bar .menu-item, .menu-bar-bottom .menu-item-bottom {
+                font-size: 12px;
+                padding: 8px;
+            }
+        
+            .scoreboard, .rankboard {
+                font-size: 12px;
+            }
+        
+            button {
+                font-size: 12px;
+                padding: 8px 16px;
+            }
+        
+            .deck .card {
+                width: 60px;
+                height: 90px;
+                font-size: 18px;
+            }
+        }
+            </style>
+</head>
+<body>
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Top Menu Bar -->
+        <div class="menu-bar">
+            <div class="menu-item" id="autoFinishBtn">Auto Finish</div>
+            <!-- Score, Points, and Your Rank -->
+            <div class="menu-item">Score: <span id="userScore">0</span></div>
+            <div class="menu-item">Points: <span id="userPoints">0</span></div>
+            <div class="menu-item">Your Rank: <span id="userRankTop">#100</span></div> <!-- Changed ID -->
+            <div class="menu-item" id="leaderboardBtn">Leaderboard</div>
+        </div>
+
+        <!-- Solitaire Deck (Placeholder) -->
+        <div class="deck">
+            <div class="card" id="card1">5♥</div>
+            <div class="card" id="card2">9♠</div>
+            <div class="card" id="card3">K♦</div>
+        </div>
+
+        <!-- Auto Complete Section (Initially hidden) -->
+        <div class="content-section" id="autoFinishSection">
+            <h3>Auto Complete Game</h3>
+            <p>Pay 0.1 TON to auto complete the game</p>
+            <button id="payAutoCompleteBtn">Pay 0.1 TON</button>
+        </div>
+
+        <!-- Leaderboard Section (Initially hidden) -->
+        <div class="content-section" id="leaderboardSection">
+            <h3>Leaderboard</h3>
+            <p>Your rank: <span id="userRankLeaderboard">#100</span></p> <!-- Changed ID -->
+            <button id="showLeaderboardBtn">Show Global Leaderboard</button>
+        </div>
+
+        <!-- Daily Rewards (Initially hidden) -->
+        <div class="content-section" id="earnSection">
+            <h3>Daily Rewards</h3>
+            <p>Claim rewards for logging in each day.</p>
+            <button id="claimRewardBtn">Claim Reward</button>
+        </div>
+
+        <!-- Tasks Section (Initially hidden) -->
+        <div class="content-section" id="tasksSection">
+            <h3>Tasks</h3>
+            <p>Follow our Twitter, YouTube, and Facebook for rewards!</p>
+            <button id="socialTaskBtn">Perform Social Tasks</button>
+        </div>
+
+        <!-- Airdrop Section (Initially hidden) -->
+        <div class="content-section" id="airdropSection">
+            <h3>Connect Wallet for Airdrop</h3>
+            <button id="connectWalletBtn">Connect Wallet</button>
+        </div>
+
+        <!-- Bottom Menu Bar -->
+        <div class="menu-bar-bottom">
+            <div class="menu-item-bottom" id="earnMenuBtn">Earn</div>
+            <div class="menu-item-bottom" id="tasksMenuBtn">Tasks</div>
+            <div class="menu-item-bottom" id="airdropMenuBtn">Airdrop</div>
+        </div>
+    </div>
+
+    <script>
+        // Handle Top Menu
+        document.getElementById('autoFinishBtn').addEventListener('click', function() {
+            showSection('autoFinishSection');
+        });
+
+        document.getElementById('leaderboardBtn').addEventListener('click', function() {
+            showSection('leaderboardSection');
+        });
+
+        // Handle Bottom Menu
+        document.getElementById('earnMenuBtn').addEventListener('click', function() {
+            showSection('earnSection');
+        });
+
+        document.getElementById('tasksMenuBtn').addEventListener('click', function() {
+            showSection('tasksSection');
+        });
+
+        document.getElementById('airdropMenuBtn').addEventListener('click', function() {
+            showSection('airdropSection');
+        });
+
+        // Function to show the selected section
+        function showSection(sectionId) {
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+        }
+
+        // Auto Complete Game
+        document.getElementById('payAutoCompleteBtn').addEventListener('click', function() {
+            alert('Processing 0.1 TON payment for auto-complete...');
+            setTimeout(() => {
+                alert('Payment confirmed! Auto-completing game...');
+            }, 2000);
+        });
+
+        // Claim Daily Reward
+        document.getElementById('claimRewardBtn').addEventListener('click', function() {
+            alert('Daily reward claimed!');
+        });
+
+        // Perform Social Task
+        document.getElementById('socialTaskBtn').addEventListener('click', function() {
+            alert('Redirecting to social media tasks...');
+        });
+
+        // Connect Wallet for Airdrop
+        document.getElementById('connectWalletBtn').addEventListener('click', function() {
+            alert('Wallet connected!');
+        });
+
+        // Show Global Leaderboard
+        document.getElementById('showLeaderboardBtn').addEventListener('click', function() {
+            alert('Displaying global leaderboard...');
+        });
+    </script>
+</body>
+</html>
