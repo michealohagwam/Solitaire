@@ -17,7 +17,7 @@
             width: 100vw;
             overflow: auto;
         }
-        
+
         .container {
             max-width: 100%;
             width: 100%;
@@ -31,7 +31,7 @@
             align-items: center;
             position: relative;
         }
-        
+
         .menu-bar, .menu-bar-bottom {
             width: 100%;
             display: flex;
@@ -42,16 +42,16 @@
             z-index: 10;
             box-sizing: border-box;
         }
-        
+
         .menu-bar {
             top: 0;
         }
-        
+
         .menu-bar-bottom {
             bottom: 0;
             flex-direction: row;
         }
-        
+
         .menu-item, .menu-item-bottom {
             color: white;
             cursor: pointer;
@@ -59,29 +59,29 @@
             text-align: center;
             flex: 1;
         }
-        
+
         .menu-item:hover, .menu-item-bottom:hover {
             text-decoration: underline;
         }
-        
+
         .menu-bar .menu-info {
             display: flex;
             flex-direction: column;
             align-items: center;
             color: white;
         }
-        
+
         .menu-bar .info-item {
             margin: 0;
             font-size: 14px;
             font-weight: bold;
             line-height: 1.5;
         }
-        
+
         .menu-bar .info-item span {
             font-weight: normal;
         }
-        
+
         .scoreboard-container {
             width: 100%;
             display: flex;
@@ -89,7 +89,7 @@
             align-items: center;
             margin-top: 60px;
         }
-        
+
         .scoreboard, .rankboard {
             background-color: white;
             border: 2px solid #007bff;
@@ -99,49 +99,57 @@
             text-align: center;
             width: auto;
         }
-        
+
         .scoreboard h3, .rankboard h3 {
             margin: 0;
             font-size: 14px;
             color: #007bff;
         }
-        
+
         .scoreboard p, .rankboard p {
             margin: 5px 0;
             font-size: 14px;
             font-weight: bold;
         }
-        
-        .deck {
+
+        .deck, .pile {
             display: flex;
             justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 30px;
-        }
-        
-        .card {
+            align-items: center;
             width: 70px;
             height: 100px;
             border-radius: 10px;
             background-color: white;
             border: 2px solid black;
             margin: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position: relative;
             font-size: 20px;
+            cursor: pointer;
         }
-        
+
+        .piles {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        #foundation1, #foundation2, #foundation3, #foundation4,
+        #wastePile, #tableauPile1, #tableauPile2, #tableauPile3, 
+        #tableauPile4, #tableauPile5, #tableauPile6, #tableauPile7 {
+            background-color: #f1f1f1;
+        }
+
         .content-section {
             margin-top: 60px;
             display: none;
             text-align: center;
         }
-        
+
         .active {
             display: block;
         }
-        
+
         button {
             padding: 10px 20px;
             border-radius: 5px;
@@ -152,33 +160,33 @@
             margin: 10px;
             font-size: 14px;
         }
-        
+
         button:hover {
             background-color: #0056b3;
         }
-        
+
         @media (max-width: 600px) {
             .menu-bar .menu-item, .menu-bar-bottom .menu-item-bottom {
                 font-size: 12px;
                 padding: 8px;
             }
-        
+
             .scoreboard, .rankboard {
                 font-size: 12px;
             }
-        
+
             button {
                 font-size: 12px;
                 padding: 8px 16px;
             }
-        
-            .deck .card {
+
+            .deck, .pile {
                 width: 60px;
                 height: 90px;
                 font-size: 18px;
             }
         }
-            </style>
+    </style>
 </head>
 <body>
     <!-- Main Container -->
@@ -193,11 +201,21 @@
             <div class="menu-item" id="leaderboardBtn">Leaderboard</div>
         </div>
 
-        <!-- Solitaire Deck (Placeholder) -->
-        <div class="deck">
-            <div class="card" id="card1">5♥</div>
-            <div class="card" id="card2">9♠</div>
-            <div class="card" id="card3">K♦</div>
+        <!-- Solitaire Deck and Piles -->
+        <div class="deck" id="deck"></div>
+        <div class="piles">
+            <div class="pile" id="foundation1"></div>
+            <div class="pile" id="foundation2"></div>
+            <div class="pile" id="foundation3"></div>
+            <div class="pile" id="foundation4"></div>
+            <div class="pile" id="wastePile"></div>
+            <div class="pile" id="tableauPile1"></div>
+            <div class="pile" id="tableauPile2"></div>
+            <div class="pile" id="tableauPile3"></div>
+            <div class="pile" id="tableauPile4"></div>
+            <div class="pile" id="tableauPile5"></div>
+            <div class="pile" id="tableauPile6"></div>
+            <div class="pile" id="tableauPile7"></div>
         </div>
 
         <!-- Auto Complete Section (Initially hidden) -->
@@ -243,64 +261,80 @@
     </div>
 
     <script>
-        // Handle Top Menu
+        // Initialize deck, piles, and waste pile
+        const suits = ['♠', '♥', '♦', '♣'];
+        const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+        let deck = [];
+        let tableauPiles = document.querySelectorAll('[id^="tableauPile"]');
+        let foundationPiles = document.querySelectorAll('[id^="foundation"]');
+        let wastePile = document.getElementById('wastePile');
+
+        function createDeck() {
+            deck = [];
+            for (let suit of suits) {
+                for (let value of values) {
+                    deck.push(value + suit);
+                }
+            }
+            deck = shuffle(deck);
+            renderDeck();
+        }
+
+        function shuffle(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex !== 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        function renderDeck() {
+            const deckElement = document.getElementById('deck');
+            deckElement.innerHTML = deck.length ? deck[0] : 'Deck Empty';
+            deckElement.onclick = function() {
+                if (deck.length) {
+                    wastePile.innerHTML += '<div>' + deck.shift() + '</div>';
+                    renderDeck();
+                }
+            };
+        }
+
+        function setupGame() {
+            createDeck();
+        }
+
+        setupGame();
+
+        // Menu button functionalities
         document.getElementById('autoFinishBtn').addEventListener('click', function() {
-            showSection('autoFinishSection');
+            toggleSection('autoFinishSection');
         });
 
         document.getElementById('leaderboardBtn').addEventListener('click', function() {
-            showSection('leaderboardSection');
+            toggleSection('leaderboardSection');
         });
 
-        // Handle Bottom Menu
         document.getElementById('earnMenuBtn').addEventListener('click', function() {
-            showSection('earnSection');
+            toggleSection('earnSection');
         });
 
         document.getElementById('tasksMenuBtn').addEventListener('click', function() {
-            showSection('tasksSection');
+            toggleSection('tasksSection');
         });
 
         document.getElementById('airdropMenuBtn').addEventListener('click', function() {
-            showSection('airdropSection');
+            toggleSection('airdropSection');
         });
 
-        // Function to show the selected section
-        function showSection(sectionId) {
+        function toggleSection(sectionId) {
             const sections = document.querySelectorAll('.content-section');
             sections.forEach(section => {
                 section.classList.remove('active');
             });
             document.getElementById(sectionId).classList.add('active');
         }
-
-        // Auto Complete Game
-        document.getElementById('payAutoCompleteBtn').addEventListener('click', function() {
-            alert('Processing 0.1 TON payment for auto-complete...');
-            setTimeout(() => {
-                alert('Payment confirmed! Auto-completing game...');
-            }, 2000);
-        });
-
-        // Claim Daily Reward
-        document.getElementById('claimRewardBtn').addEventListener('click', function() {
-            alert('Daily reward claimed!');
-        });
-
-        // Perform Social Task
-        document.getElementById('socialTaskBtn').addEventListener('click', function() {
-            alert('Redirecting to social media tasks...');
-        });
-
-        // Connect Wallet for Airdrop
-        document.getElementById('connectWalletBtn').addEventListener('click', function() {
-            alert('Wallet connected!');
-        });
-
-        // Show Global Leaderboard
-        document.getElementById('showLeaderboardBtn').addEventListener('click', function() {
-            alert('Displaying global leaderboard...');
-        });
     </script>
 </body>
 </html>
